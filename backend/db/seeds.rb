@@ -1,10 +1,5 @@
-# Clear existing data
-puts "Clearing existing data..."
-Expense.destroy_all
-Category.destroy_all
-
-# Create categories
-puts "Creating categories..."
+# Create categories without deleting user data on every container restart
+puts "Ensuring categories exist..."
 categories = [
   'Food',
   'Transportation',
@@ -19,10 +14,17 @@ categories = [
 ]
 
 created_categories = categories.map do |cat_name|
-  Category.create!(name: cat_name)
+  Category.find_or_create_by!(name: cat_name)
 end
 
 puts "Created #{created_categories.count} categories"
+
+if Expense.exists?
+  puts "Expenses already exist. Skipping sample seed generation to preserve current data."
+  puts "Total categories: #{Category.count}"
+  puts "Total expenses: #{Expense.count}"
+  exit
+end
 
 # Generate expenses from January 2024 to February 18, 2026
 puts "Creating expenses from January 2024 to February 18, 2026..."
