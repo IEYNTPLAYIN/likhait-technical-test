@@ -8,6 +8,17 @@ const API_BASE_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:3000/api"
 ).replace(/\/$/, "");
 
+async function getErrorMessage(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  const payload = (await response.json().catch(() => null)) as
+    | { errors?: string[] }
+    | null;
+
+  return payload?.errors?.[0] || fallbackMessage;
+}
+
 /**
  * Fetch all expenses
  */
@@ -72,7 +83,7 @@ export async function createExpense(data: ExpenseFormData): Promise<Expense> {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create expense");
+    throw new Error(await getErrorMessage(response, "Failed to create expense"));
   }
 
   return response.json();
@@ -94,7 +105,7 @@ export async function updateExpense(
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update expense");
+    throw new Error(await getErrorMessage(response, "Failed to update expense"));
   }
 
   return response.json();
