@@ -75,6 +75,7 @@ A full-stack expense tracking application with calendar-based visualization for 
 - [Overview](#overview)
 - [Core Concepts](#core-concepts)
 - [Technology Stack](#technology-stack)
+- [Documentation](#documentation)
 - [Quick Start](#quick-start)
 - [Running Tests](#running-tests)
 - [Database Operations](#database-operations)
@@ -124,21 +125,28 @@ Clean separation between frontend and backend enables scalability and maintainab
 - **Puma** web server for handling concurrent requests
 - **CORS** configured for frontend-backend communication
 
+## Documentation
+
+- [README.docker.md](./README.docker.md) for the Docker-first setup flow
+- [README.troubleshooting.md](./README.troubleshooting.md) for rebuild and recovery steps
+
 ## Quick Start
 
 ### Using Docker (Recommended)
 
 ```bash
 # Clone and navigate to project
-cd expense_system_rails
+cd likhait-technical-test
 
 # Start all services
-docker compose up
+docker compose up --build
 
 # Access the application
 # Frontend: http://localhost:5173
 # Backend API: http://localhost:3000/api
 ```
+
+For a full Docker walkthrough, reset instructions, and container commands, see [README.docker.md](./README.docker.md).
 
 ### Manual Setup
 
