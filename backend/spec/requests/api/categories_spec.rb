@@ -22,4 +22,38 @@ RSpec.describe "Api::Categories", type: :request do
       expect(json.map { |c| c["name"] }).to eq([ "Food", "Supplies", "Transport" ])
     end
   end
+
+  describe "POST /api/categories" do
+    it "creates a new category" do
+      expect {
+        post "/api/categories", params: { category: { name: "Supplies" } }, as: :json
+      }.to change(Category, :count).by(1)
+
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      expect(json["name"]).to eq("Supplies")
+    end
+
+    it "rejects duplicate category names case-insensitively" do
+      Category.create!(name: "Food")
+
+      expect {
+        post "/api/categories", params: { category: { name: " food " } }, as: :json
+      }.not_to change(Category, :count)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include("Name has already been taken")
+    end
+
+    it "rejects blank category names" do
+      expect {
+        post "/api/categories", params: { category: { name: "   " } }, as: :json
+      }.not_to change(Category, :count)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include("Name can't be blank")
+    end
+  end
 end
