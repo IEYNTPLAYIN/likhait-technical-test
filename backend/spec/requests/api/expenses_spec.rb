@@ -5,8 +5,27 @@ RSpec.describe "Api::Expenses", type: :request do
   let!(:transport_category) { Category.create!(name: "Transport") }
 
   describe "GET /api/expenses" do
-  let!(:expense1) { Expense.create!(description: "Lunch", amount: 100.00, category: food_category, date: Date.today) }
-  let!(:expense2) { Expense.create!(description: "Taxi", amount: 50.00, category: transport_category, date: Date.today) }
+    let!(:expense1) do
+      Expense.create!(
+        description: "Older expense date, newer creation time",
+        amount: 100.00,
+        category: food_category,
+        date: Date.new(2026, 8, 1),
+        created_at: Time.zone.local(2026, 8, 10, 12, 0, 0),
+        updated_at: Time.zone.local(2026, 8, 10, 12, 0, 0)
+      )
+    end
+
+    let!(:expense2) do
+      Expense.create!(
+        description: "Newer expense date, older creation time",
+        amount: 50.00,
+        category: transport_category,
+        date: Date.new(2026, 8, 10),
+        created_at: Time.zone.local(2026, 8, 1, 12, 0, 0),
+        updated_at: Time.zone.local(2026, 8, 1, 12, 0, 0)
+      )
+    end
 
     it "returns all expenses with category information" do
       get "/api/expenses"
@@ -16,12 +35,29 @@ RSpec.describe "Api::Expenses", type: :request do
       expect(json.length).to eq(2)
     end
 
-    it "returns expenses in descending order by created_at" do
+    it "returns expenses in descending order by expense date" do
       get "/api/expenses"
 
       json = JSON.parse(response.body)
       expect(json.first["id"]).to eq(expense2.id)
       expect(json.last["id"]).to eq(expense1.id)
+    end
+
+    it "filters expenses by expense date month rather than creation time" do
+      july_expense = Expense.create!(
+        description: "Created in August, dated in July",
+        amount: 75.00,
+        category: food_category,
+        date: Date.new(2026, 7, 15),
+        created_at: Time.zone.local(2026, 8, 10, 8, 0, 0),
+        updated_at: Time.zone.local(2026, 8, 10, 8, 0, 0)
+      )
+
+      get "/api/expenses", params: { year: 2026, month: 7 }
+
+      expect(response).to have_http_status(:success)
+      json = JSON.parse(response.body)
+      expect(json.map { |expense| expense["id"] }).to eq([july_expense.id])
     end
   end
 
